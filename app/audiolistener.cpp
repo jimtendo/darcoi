@@ -193,7 +193,7 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
             int barNumber = (int)((*it).frequency-m_spectrumLowThreshold) / step;
             bars[barNumber] = qMax((qreal)bars[barNumber], (*it).amplitude);
 
-            if (bars[barNumber] > dominantBarAmplitude) {
+            if (bars[barNumber] > dominantBarAmplitude && barNumber > 0) {
                 dominantBar = barNumber;
                 dominantBarAmplitude = bars[barNumber];
             }
