@@ -61,6 +61,7 @@ private:
     QIODevice*          m_audioInputIODevice;
     QAudioFormat        m_format;
 
+    int                 m_lastBytesReady;
     QByteArray          m_buffer;
 
     QByteArray          m_spectrumBuffer;

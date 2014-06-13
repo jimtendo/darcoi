@@ -132,10 +132,12 @@ bool AudioListener::selectFormat()
 
 void AudioListener::audioDataReady()
 {
-    const qint64 bytesReady = m_audioInput->bytesReady();
+    m_lastBytesReady = m_audioInput->bytesReady();
 
-    m_buffer.append(m_audioInputIODevice->read(bytesReady));
-    
+    if (m_lastBytesReady) {
+        m_buffer.append(m_audioInputIODevice->read(m_lastBytesReady));
+    }
+
     if (m_audioInput->error() == QAudio::NoError && m_lastError != QAudio::NoError) {
         qDebug() << "AudioListener::Restarting Audio";
         qDebug() << "AudioListener::Previous error: " << m_lastError << ", Current Error: " << m_audioInput->error();
@@ -148,20 +150,22 @@ void AudioListener::audioDataReady()
 
 void AudioListener::audioNotify()
 {
-    calculateLevel();
+    if (m_lastBytesReady) {
+        calculateLevel();
 
-    if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
-        m_spectrumBuffer.remove(0, m_buffer.length());
+        if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
+            m_spectrumBuffer.remove(0, m_buffer.length());
+        }
+
+        m_spectrumBuffer.append(m_buffer);
+
+        if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
+            m_spectrumBuffer.remove(0, m_spectrumBuffer.length() - m_spectrumBufferLength);
+            calculateSpectrum();
+        }
+
+        m_buffer.clear();
     }
-
-    m_spectrumBuffer.append(m_buffer);
-
-    if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
-        m_spectrumBuffer.remove(0, m_spectrumBuffer.length() - m_spectrumBufferLength);
-        calculateSpectrum();
-    }
-
-    m_buffer.clear();
 }
 
 void AudioListener::audioStateChanged(QAudio::State state)
