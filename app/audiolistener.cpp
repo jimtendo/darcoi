@@ -181,6 +181,7 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
 {
     int barCount = 10;
     float bars[barCount];
+    for (int i = 0; i < barCount; i++) bars[i] = 0.0;
     int step = (m_spectrumHighThreshold - m_spectrumLowThreshold) / barCount;
 
     int dominantBar = 0;
