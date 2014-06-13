@@ -137,10 +137,10 @@ void AudioListener::audioDataReady()
     m_buffer.append(m_audioInputIODevice->read(bytesReady));
     
     if (m_audioInput->error() == QAudio::NoError && m_lastError != QAudio::NoError) {
-	qDebug() << "AudioListener::Restarting Audio";
-	qDebug() << "AudioListener::Previous error: " << m_lastError << ", Current Error: " << m_audioInput->error();
-	stopListening();
-	startListening();
+        qDebug() << "AudioListener::Restarting Audio";
+        qDebug() << "AudioListener::Previous error: " << m_lastError << ", Current Error: " << m_audioInput->error();
+        stopListening();
+        startListening();
     }
     
     m_lastError = m_audioInput->error();
@@ -185,7 +185,7 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
 
     FrequencySpectrum::const_iterator it = spectrum.begin();
     while (it != spectrum.end()) {
-        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold) {
+        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold - step) {
             int barNumber = (int)((*it).frequency-m_spectrumLowThreshold) / step;
             bars[barNumber] = qMax((qreal)bars[barNumber], (*it).amplitude);
 
