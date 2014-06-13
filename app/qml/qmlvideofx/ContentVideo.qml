@@ -53,7 +53,7 @@ VideoOutput {
         volume: 0.5
         loops: Audio.Infinite
         
-        //onStopped: play()
+        onStopped: play()
     }
 
     function play() { mediaPlayer.play() }
