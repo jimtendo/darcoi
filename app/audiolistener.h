@@ -67,6 +67,7 @@ private:
     QByteArray          m_spectrumBuffer;
     SpectrumAnalyser    m_spectrumAnalyser;
     int                 m_spectrumBufferLength;
+    int                 m_spectrumBars;
     int                 m_spectrumLowThreshold;
     int                 m_spectrumHighThreshold;
 

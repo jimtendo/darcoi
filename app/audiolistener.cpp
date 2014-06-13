@@ -12,7 +12,8 @@ AudioListener::AudioListener(QObject *parent) :
     m_availableAudioInputDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput)),
     m_audioInputDevice(QAudioDeviceInfo::defaultInputDevice()),
     m_spectrumLowThreshold(1),
-    m_spectrumHighThreshold(4000)
+    m_spectrumHighThreshold(4000),
+    m_lastError(QAudio::NoError)
 {
     qRegisterMetaType<FrequencySpectrum>("FrequencySpectrum");
     qRegisterMetaType<WindowFunction>("WindowFunction");
@@ -144,7 +145,7 @@ void AudioListener::audioDataReady()
         stopListening();
         startListening();
     }
-    
+
     m_lastError = m_audioInput->error();
 }
 
@@ -187,7 +188,7 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
 
     FrequencySpectrum::const_iterator it = spectrum.begin();
     while (it != spectrum.end()) {
-        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold && (*it).amplitude) {
+        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold && (*it).amplitude > 0.01) {
             int barNumber = (int)((*it).frequency-m_spectrumLowThreshold) / step;
             //qDebug() << "Bar: " << barNumber << ", Frequency: " << (*it).frequency << ", Amplitude: " << (*it).amplitude;
             bars[barNumber] = qMax((qreal)bars[barNumber], (*it).amplitude);
