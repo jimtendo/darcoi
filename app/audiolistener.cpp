@@ -150,22 +150,20 @@ void AudioListener::audioDataReady()
 
 void AudioListener::audioNotify()
 {
-    if (m_lastBytesReady) {
-        calculateLevel();
+    calculateLevel();
 
-        if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
-            m_spectrumBuffer.remove(0, m_buffer.length());
-        }
-
-        m_spectrumBuffer.append(m_buffer);
-
-        if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
-            m_spectrumBuffer.remove(0, m_spectrumBuffer.length() - m_spectrumBufferLength);
-            calculateSpectrum();
-        }
-
-        m_buffer.clear();
+    if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
+        m_spectrumBuffer.remove(0, m_buffer.length());
     }
+
+    m_spectrumBuffer.append(m_buffer);
+
+    if (m_spectrumBuffer.length() >= m_spectrumBufferLength) {
+        m_spectrumBuffer.remove(0, m_spectrumBuffer.length() - m_spectrumBufferLength);
+        calculateSpectrum();
+    }
+
+    m_buffer.clear();
 }
 
 void AudioListener::audioStateChanged(QAudio::State state)
@@ -180,7 +178,7 @@ void AudioListener::audioStateChanged(QAudio::State state)
 
 void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
 {
-    int barCount = 9;
+    int barCount = 10;
     float bars[barCount];
     int step = (m_spectrumHighThreshold - m_spectrumLowThreshold) / barCount;
 
@@ -189,8 +187,9 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
 
     FrequencySpectrum::const_iterator it = spectrum.begin();
     while (it != spectrum.end()) {
-        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold - step) {
+        if ((int)(*it).frequency > m_spectrumLowThreshold && (int)(*it).frequency < m_spectrumHighThreshold && (*it).amplitude) {
             int barNumber = (int)((*it).frequency-m_spectrumLowThreshold) / step;
+            //qDebug() << "Bar: " << barNumber << ", Frequency: " << (*it).frequency << ", Amplitude: " << (*it).amplitude;
             bars[barNumber] = qMax((qreal)bars[barNumber], (*it).amplitude);
 
             if (bars[barNumber] > dominantBarAmplitude && barNumber > 0) {
@@ -200,6 +199,10 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
         }
         it++;
     }
+
+    /*for (int i = 0; i < barCount; i++) {
+        qDebug() << "Bar " << i << ": " << bars[i];
+    }*/
 
     emit spectrumChangedQml(bars[0], bars[1], bars[2], bars[3], bars[4], bars[5], bars[6], bars[7], bars[8], bars[9]);
     emit dominantBarChangedQml(dominantBar, dominantBarAmplitude);
@@ -247,5 +250,7 @@ void AudioListener::calculateSpectrum()
     if (m_spectrumAnalyser.isReady()) {
         //m_spectrumBuffer = QByteArray::fromRawData(m_buffer.constData(), SpectrumLengthSamples * m_format.sampleSize()/8);
         m_spectrumAnalyser.calculate(m_spectrumBuffer, m_format);
+    } else {
+        qDebug() << "Spectrum Analyzer wasn't ready";
     }
 }
