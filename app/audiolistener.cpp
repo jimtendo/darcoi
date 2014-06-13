@@ -194,7 +194,7 @@ void AudioListener::spectrumChanged(const FrequencySpectrum &spectrum)
             //qDebug() << "Bar: " << barNumber << ", Frequency: " << (*it).frequency << ", Amplitude: " << (*it).amplitude;
             bars[barNumber] = qMax((qreal)bars[barNumber], (*it).amplitude);
 
-            if (bars[barNumber] > dominantBarAmplitude && barNumber > 0) {
+            if (bars[barNumber] > dominantBarAmplitude) {
                 dominantBar = barNumber;
                 dominantBarAmplitude = bars[barNumber];
             }
