@@ -50,3 +50,5 @@ maemo6: {
 
 target.path = /usr/local/bin/qmlvideofx
 INSTALLS += target
+
+OTHER_FILES +=

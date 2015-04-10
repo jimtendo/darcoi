@@ -52,14 +52,6 @@ Rectangle {
 
     property string textColor:"black"
 
-    property double wobbleThreshold: wobbleThresholdSlider.value * 10
-    property double wobbleMultiplier: wobbleMultiplierSlider.value
-    
-    property double greyThreshold: greyThresholdSlider.value * 10
-    property double greyBrightness: greyBrightnessSlider.value
-
-    property double brightenThreshold: brightenThresholdSlider.value * 10
-
     property int volume: 0
     property int spectrum0: 0
     property int spectrum1: 0
@@ -122,49 +114,6 @@ Rectangle {
             onValueChanged: {
                 highFrequencyChanged(value * 4000)
             }
-        }
-        Text { text: "<b>Wobble Threshold</b>"; color:root.textColor }
-        Slider {
-            id:wobbleThresholdSlider
-            width:parent.width
-            height:20
-            gripSize: 20
-            value: 0.2
-            increment: 0.01
-        }
-        Text { text: "<b>Grey Threshold</b>"; color:root.textColor; }
-        Slider {
-            id:greyThresholdSlider
-            width:parent.width
-            height:20
-            gripSize: 20
-            value: 0.4
-            increment: 0.01
-        }
-        Text { text: "<b>Brighten Threshold</b>"; color:root.textColor; }
-        Slider {
-            id:brightenThresholdSlider
-            width:parent.width
-            height:20
-            gripSize: 20
-            value: 0.8
-            increment: 0.01
-        }
-        Text { text: "<b>Wobble Multiplier</b>"; color:root.textColor; }
-        Slider {
-            id:wobbleMultiplierSlider
-            width:parent.width
-            height:20
-            gripSize: 20
-            value: 0.5
-        }
-        Text { text: "<b>Grey Clipping</b>"; color:root.textColor; }
-        Slider {
-            id:greyBrightnessSlider
-            width:parent.width
-            height:20
-            gripSize: 20
-            value: 0.5
         }
     }
 }

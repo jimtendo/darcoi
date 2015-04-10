@@ -45,122 +45,69 @@
 #include <QtGui/QGuiApplication>
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickView>
+
 #include "filereader.h"
 #include "trace.h"
 #include "engine.h"
 #include "audiolistener.h"
 
-#ifdef SMALL_SCREEN_LAYOUT
-    static const QLatin1String MainQmlFile("main-smallscreen.qml");
-#else
-    static const QLatin1String MainQmlFile("main-largescreen.qml");
-#endif
-
-#ifdef PERFORMANCEMONITOR_SUPPORT
-#include "performancemonitordeclarative.h"
-#endif
-
-
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-#ifdef PERFORMANCEMONITOR_SUPPORT
-    PerformanceMonitor::qmlRegisterTypes();
-#endif
-
+    // Command line options
     bool fullscreen = false;
-    QUrl soundFile;
     QUrl fileName;
-    qreal volume = 0.5;
+
+    // Get command line arguments
     QStringList args = app.arguments();
-#ifdef PERFORMANCEMONITOR_SUPPORT
-    PerformanceMonitor::State performanceMonitorState;
-#endif
     for (int i = 1; i < args.size(); ++i) {
+
+        // Get argument
         const QByteArray arg = args.at(i).toUtf8();
+
+        // If argument is a flag...
         if (arg.startsWith('-')) {
-            if ("-volume" == arg) {
-                if (i + 1 < args.size())
-                    volume = 0.01 * args.at(++i).toInt();
-                else
-                    qtTrace() << "Option \"-volume\" takes a value";
-            }
-#ifdef PERFORMANCEMONITOR_SUPPORT
-            else if (performanceMonitorState.parseArgument(arg)) {
-                // Do nothing
-            }
-#endif
-            else if ("-fullscreen" == arg) {
+
+            if ("-fullscreen" == arg) {
                 fullscreen = true;
             }
+        }
 
-            else if ("-sound" == arg) {
-                soundFile = args.at(++i);
-            }
-
-            else {
-                qtTrace() << "Option" << arg << "ignored";
-            }
-        } else {
-            if (fileName.isEmpty())
-                fileName = QUrl::fromLocalFile(arg);
-            else
-                qtTrace() << "Argument" << arg << "ignored";
+        // Otherwise it is a filename
+        else {
+            fileName = QUrl::fromLocalFile(arg);
         }
     }
 
     QQuickView viewer;
 
-    viewer.setSource(QLatin1String("qrc:///qml/qmlvideofx/") + MainQmlFile);
+    // Setup viewer window
+    viewer.setSource(QUrl(QLatin1String("qrc:///qml/qmlvideofx/main.qml")));
     QQuickItem *rootObject = viewer.rootObject();
-    rootObject->setProperty("fileName", fileName);
-    viewer.rootObject()->setProperty("volume", volume);
-
-#ifdef PERFORMANCEMONITOR_SUPPORT
-    if (performanceMonitorState.valid) {
-        rootObject->setProperty("perfMonitorsLogging", performanceMonitorState.logging);
-        rootObject->setProperty("perfMonitorsVisible", performanceMonitorState.visible);
-    }
-    QObject::connect(&viewer, SIGNAL(afterRendering()),
-                     rootObject, SLOT(qmlFramePainted()));
-#endif
-
-    FileReader fileReader;
-    viewer.rootContext()->setContextProperty("fileReader", &fileReader);
-
-    const QUrl appPath(QUrl::fromLocalFile(app.applicationDirPath()));
-    const QStringList picturesLocation = QStandardPaths::standardLocations(QStandardPaths::PicturesLocation);
-    const QUrl imagePath = picturesLocation.isEmpty() ? appPath : QUrl::fromLocalFile(picturesLocation.first());
-    viewer.rootContext()->setContextProperty("imagePath", imagePath);
-
-    const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
-    const QUrl videoPath = moviesLocation.isEmpty() ? appPath : QUrl::fromLocalFile(moviesLocation.first());
-    viewer.rootContext()->setContextProperty("videoPath", videoPath);
-
-    viewer.setTitle("qmlvideofx");
-    viewer.setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint |
-                          Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    viewer.setTitle("DarceArt");
+    viewer.setFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
     viewer.setMinimumSize(QSize(600, 400));
 
-#ifdef SMALL_SCREEN_PHYSICAL
-    viewer.showFullScreen();
-#else
+    // Show the view
     viewer.show();
-#endif
 
+    // If fullscreen was specified...
     if (fullscreen) {
         viewer.showFullScreen();
     }
 
+    // Make root object fill the size of the view
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
 
-    QObject::connect((QObject*)viewer.rootContext()->engine(), SIGNAL(quit()), &app, SLOT(quit()));
+    // Connect quit signal with quit of application
+    //QObject::connect((QObject*)viewer.rootContext()->engine(), SIGNAL(quit()), &app, SLOT(quit()));
 
+    // Create and start audio listener
     AudioListener audioListener;
     audioListener.startListening();
     QObject::connect(&audioListener, SIGNAL(levelChangedQml(QVariant, QVariant, QVariant)),
-                     rootObject, SLOT(changeParameter(QVariant, QVariant, QVariant)));
+                     rootObject, SLOT(levelChanged(QVariant, QVariant, QVariant)));
 
     QObject::connect(&audioListener, SIGNAL(spectrumChangedQml(QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant)),
                      rootObject, SLOT(spectrumChanged(QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant, QVariant)));
@@ -168,7 +115,7 @@ int main(int argc, char *argv[])
     QObject::connect(&audioListener, SIGNAL(dominantBarChangedQml(QVariant, QVariant)),
                      rootObject, SLOT(dominantBarChanged(QVariant, QVariant)));
 
-    // Connect QML Frequency shit
+    // Connect QML Frequency shit (we need to send back when Low or High Frequency change)
     QObject* tuningPanel = rootObject->findChild<QObject*>("tuningPanel");
     if (tuningPanel) {
         QObject::connect(tuningPanel, SIGNAL(lowFrequencyChanged(int)),

@@ -70,5 +70,6 @@
         <file>qml/qmlvideofx/TuningPanel.qml</file>
         <file>qml/qmlvideofx/EffectDarcoi.qml</file>
         <file>shaders/darcoi.fsh</file>
+        <file>qml/qmlvideofx/main.qml</file>
     </qresource>
 </RCC>
