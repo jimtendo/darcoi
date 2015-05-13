@@ -31,11 +31,11 @@ SOURCES  += fftreal_wrapper.cpp
 
 DEFINES  += FFTREAL_LIBRARY
 
-macx {
-    CONFIG += lib_bundle
-} else {
-    DESTDIR = ../..$${spectrum_build_dir}
-}
+#macx {
+#    CONFIG += lib_bundle
+#} else {
+#    DESTDIR = ../..$${spectrum_build_dir}
+#}
 
 EXAMPLE_FILES = bwins/fftreal.def eabi/fftreal.def readme.txt license.txt
 

@@ -92,6 +92,12 @@ Rectangle {
                     uniform float time;
                     uniform float volume;
                     uniform float frequency;
+
+                    vec4 getPixelAt(float x, float y)
+                    {
+                        return texture2D(source, vec2(x, y));
+                    }
+
                     void main(void)
                     {
                         vec2 position = qt_TexCoord0.xy;
